@@ -57,7 +57,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=poldeperez-coffee-code-challenge
-            -Dsonar.organization=your-sonarcloud-org
+            -Dsonar.projectKey=coffee-challenge-mvst
+            -Dsonar.organization=poldeperez
             -Dsonar.sources=frontend/src
             -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
