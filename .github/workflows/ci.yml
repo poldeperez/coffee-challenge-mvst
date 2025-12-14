@@ -7,7 +7,7 @@ on:
     branches: [main, develop]
 
 jobs:
-  frontend:
+  test:
     runs-on: ubuntu-latest
     
     steps:
@@ -41,23 +41,35 @@ jobs:
         run: |
           cd frontend
           yarn build
-
-
-  code-quality:
+  deploy:
+    needs: test
     runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run SonarQube scan
-        uses: SonarSource/sonarqube-scan-action@v5.0.0
+      - name: Deploy to EC2
+        uses: easingthemes/ssh-deploy@main
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=coffee-challenge-mvst
-            -Dsonar.organization=poldeperez
-            -Dsonar.sources=frontend/src
-            -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          REMOTE_HOST: ${{ secrets.EC2_HOST }}
+          REMOTE_USER: ${{ secrets.EC2_USER }}
+          TARGET: /home/ec2-user/app
+          SCRIPT_BEFORE: |
+            cd /home/ec2-user/app
+            git pull origin main
+            yarn install
+          SCRIPT_AFTER: |
+            cd /home/ec2-user/app
+            yarn build
+            pm2 restart coffee-app || pm2 start yarn --name "coffee-app" -- start
+      - name: Verify Deployment
+        run: |
+          sleep 5
+          curl -f http://${{ secrets.EC2_HOST }}:3000 || exit 1
+          echo  "Deployment successful!"
+
+
+  
