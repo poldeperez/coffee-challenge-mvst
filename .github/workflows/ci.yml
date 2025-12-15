@@ -57,7 +57,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
             # Navigate to the project directory
-            cd /home/ec2-user/coffee-challenge-mvst
+            cd /home/ec2-user/app/coffee-challenge-mvst
             
             # Pull the latest changes
             git pull origin main
